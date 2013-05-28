@@ -1,8 +1,10 @@
 require 'rubygems'
 require 'rubygame'
+require './lib/conf.rb'
 require './lib/shared.rb'
 require './lib/pause.rb'
 require './lib/about.rb'
+require './lib/options.rb'
 require './lib/title.rb'
 require './lib/ingame.rb'
 Rubygame::TTF.setup
@@ -59,10 +61,12 @@ class Game
 
   def switch_state state
     if @state != nil
+      @state.state_change(:going_out)
       @state_buffer = state
     else
       @state = state
     end
+    state.state_change(:going_in)
   end
 end
 

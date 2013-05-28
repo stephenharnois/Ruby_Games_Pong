@@ -1,4 +1,4 @@
-class About
+class About < State
   def initialize game
     @game = game
     @screen = game.screen

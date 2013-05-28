@@ -1,4 +1,5 @@
-class InGame
+class InGame < State
+  @@music = Rubygame::Music.load("media/This-is-Chipstep.mp3")
 
   def initialize game
     @game = game
@@ -38,9 +39,9 @@ class InGame
     @player.update
     @enemy.update
     @ball.update @screen, @player, @enemy unless @won
-    if @player.score == 3
+    if @player.score == Conf[:winning_score]
       win 1
-    elsif @enemy.score == 3
+    elsif @enemy.score == Conf[:winning_score]
       win 2
     end
     @queue.each do |ev|
@@ -58,6 +59,9 @@ class InGame
         end
         if ev.key == Rubygame::K_N and @won
           @game.switch_state Title.new(@game)
+        end
+        if ev.key == Rubygame::K_P and !@won
+          @game.switch_state Pause.new(@game, self)
         end
         if ev.key == Rubygame::K_ESCAPE
           @game.switch_state Title.new(@game)
@@ -93,6 +97,20 @@ class InGame
     return false if obj1.x + obj1.width < obj2.x
     return false if obj1.x > obj2.x + obj2.width
     return true
+  end
+
+  def state_change way
+    if Conf[:music]
+      if way == :going_out
+       @@music.pause
+      else
+        if @@music.paused?
+          @@music.unpause
+        else
+          @@music.play :repeats => -1
+        end
+      end
+    end
   end
 end
 
@@ -181,7 +199,8 @@ end
 class Ball < GameObject
   def initialize x, y
     surface = Rubygame::Surface.load "media/ball.png"
-    @vx = @vy = 5
+    @vx = @vy = Conf[:ball_speed]
+    @hit_sound = Rubygame::Sound.load("media/pop.ogg")
     super x, y, surface
   end
 
@@ -204,6 +223,7 @@ class Ball < GameObject
     # Top or Bottom
     if @y <= 10 or @y + @height >= screen.height - 10
       @vy *= -1
+      @hit_sound.play if Conf[:fx]
     end
   end
 
@@ -226,12 +246,14 @@ class Ball < GameObject
       unless @x < paddle.x - 5
         @x = paddle.x + paddle.width + 1
         @vx *= -1
+        @hit_sound.play if Conf[:fx]
       end
     # Right
     else
       unless @x > paddle.x + 5
         @x = paddle.x - @width - 1
         @vx *= -1
+        @hit_sound.play if Conf[:fx]
       end
     end
   end

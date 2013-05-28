@@ -1,4 +1,4 @@
-class Pause
+class Pause < State
   def initialize game, old_state
     @game = game
     @screen = game.screen
